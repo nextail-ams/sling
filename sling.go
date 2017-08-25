@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+        "strings"
 
 	goquery "github.com/google/go-querystring/query"
 )
