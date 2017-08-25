@@ -357,6 +357,11 @@ func (s *Sling) Do(req *http.Request, successV, failureV interface{}) (*http.Res
 		return resp, nil
 	}
 
+	// Don't try to decode none json content-types
+	if !strings.Contains(resp.Header.Get(contentType), jsonContentType) {
+		return resp, nil
+	}
+
 	// Decode from json
 	if successV != nil || failureV != nil {
 		err = decodeResponseJSON(resp, successV, failureV)
