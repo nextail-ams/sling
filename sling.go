@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-        "strings"
+	"strings"
 
 	goquery "github.com/google/go-querystring/query"
 )
@@ -353,8 +353,15 @@ func (s *Sling) Do(req *http.Request, successV, failureV interface{}) (*http.Res
 	// when err is nil, resp contains a non-nil resp.Body which must be closed
 	defer resp.Body.Close()
 
+	isChunked := false
+	for _, encoding := range resp.TransferEncoding {
+		if isChunked = encoding == "chunked"; isChunked {
+			break
+		}
+	}
+
 	// Don't try to decode on a empty body
-	if resp.ContentLength <= 0 && resp.Header.Get("Transfer-Encoding") != "chunked" {
+	if !isChunked && resp.ContentLength <= 0 {
 		return resp, nil
 	}
 
