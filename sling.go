@@ -360,10 +360,45 @@ func (s *Sling) Do(req *http.Request, successV, failureV interface{}) (*http.Res
 		}
 	}
 
+	// NOTE this was commented out as it produces misbehavior with GAE/WCS
+	// calls (mb only if HTTP/2 is used) -- encoding: chunked is missing in response
+	// but contentlength is -1 in the normal response where body could be read
+	// comparison of responses:
+	//
+	//GAE:
+	//&http.Response{Status:"201 Created", StatusCode:201, Proto:"HTTP/2.0", ProtoMajor:2,
+	//ProtoMinor:0, Header:http.Header{"Date":[]string{"Tue, 24 Sep 2019 14:12:07 GMT"},
+	//"Set-Cookie":[]string{"JSESSIONID=0000CBtE-aeDEPPSAWS6Utj7BXT:n2s4; HTTPOnly; Path=/; HttpOnly",
+	//"GCLB=CMn5oai1jLn0HA; path=/; HttpOnly"}, "Expires":[]string{"Thu, 01 Dec 1994 16:00:00 GMT"},
+	//"Cache-Control":[]string{"max-age=0, private, no-store, no-cache, must-revalidate"},
+	//"X-Frame-Options":[]string{"SAMEORIGIN"}, "Content-Language":[]string{"en-US"},
+	//"X-Powered-By":[]string{"Servlet/3.0"}, "Vary":[]string{"Accept,Accept-Encoding,User-Agent"},
+	//"Content-Type":[]string{"application/json"}, "Via":[]string{"1.1 google"},
+	//"Alt-Svc":[]string{"clear"}}, Body:(*http.http2gzipReader)(0xc00111bce0), ContentLength:-1,
+	//TransferEncoding:[]string(nil), Close:false, Uncompressed:true, Trailer:http.Header(nil),
+	//Request:(*http.Request)(0xc000ec4700), TLS:(*tls.ConnectionState)(0xc000b53ad0)}
+	//
+	//Local:
+	//&http.Response{Status:"201 Created", StatusCode:201, Proto:"HTTP/1.1", ProtoMajor:1,
+	//ProtoMinor:1, Header:http.Header{"Cache-Control":[]string{"max-age=0, private, no-store,
+	//no-cache, must-revalidate"}, "Connection":[]string{"keep-alive"},
+	//"Content-Language":[]string{"en-US"},
+	//"Content-Type":[]string{"application/json"},
+	//"Date":[]string{"Tue, 24 Sep 2019 14:22:53 GMT"},
+	//"Expires":[]string{"Thu, 01 Dec 1994 16:00:00 GMT"},
+	//"Server":[]string{"nginx/1.13.1"},
+	//"Set-Cookie":[]string{"JSESSIONID=0000F_aeb3-GNA9ELZUJrOAwI8S:n1s1; HTTPOnly; Path=/; HttpOnly"},
+	//"Vary":[]string{"Accept,Accept-Encoding,User-Agent"},
+	//"X-Frame-Options":[]string{"SAMEORIGIN"},
+	//"X-Powered-By":[]string{"Servlet/3.0"}}, Body:(*http.gzipReader)(0xc0016f4f40),
+	//ContentLength:-1,
+	//TransferEncoding:[]string{"chunked"}, Close:false, Uncompressed:true, Trailer:http.Header(nil),
+	//Request:(*http.Request)(0xc0012b6d00), TLS:(*tls.ConnectionState)(0xc000ae8790)}
+	//
 	// Don't try to decode on a empty body
-	if !isChunked && resp.ContentLength <= 0 {
-		return resp, nil
-	}
+	//if !isChunked && resp.ContentLength <= 0 {
+	//	return resp, nil
+	//}
 
 	// Don't try to decode none json content-types
 	if !strings.Contains(resp.Header.Get(contentType), jsonContentType) {
